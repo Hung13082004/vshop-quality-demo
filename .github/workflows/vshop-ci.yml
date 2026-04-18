@@ -18,3 +18,7 @@ jobs:
 
     - name: 3. Chạy Unit Test kiểm tra lỗi
       run: mvn -B test
+
+    # THÊM BƯỚC NÀY ĐỂ ĐÁP ỨNG ĐÚNG YÊU CẦU "ĐÓNG GÓI" CỦA CÔ
+    - name: 4. Đóng gói Bản Ứng viên (Release Candidate)
+      run: mvn -B package
