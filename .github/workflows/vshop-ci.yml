@@ -3,6 +3,9 @@ name: V-Shop 12/12 Deployment Pipeline
 on: [push, pull_request]
 
 jobs:
+  # ==========================================
+  # GIAI ĐOẠN 1: COMMIT STAGE (Quét lỗi cơ bản)
+  # ==========================================
   commit-stage:
     runs-on: ubuntu-latest
     steps:
@@ -16,5 +19,41 @@ jobs:
         distribution: 'temurin'
         cache: 'maven'
 
-    - name: 3. Chạy Unit Test kiểm tra lỗi
+    - name: 3. Unit Test (Chặn lỗi 11/11 bằng Poka-Yoke)
       run: mvn -B test
+
+    - name: 4. Đóng gói sản phẩm (Build Artifact)
+      run: mvn -B package --file pom.xml
+      # File .jar sẽ được sinh ra ở bước này sau khi code an toàn vượt qua bài Test
+
+  # ==========================================
+  # GIAI ĐOẠN 2: ACCEPTANCE STAGE (Kiểm thử chịu tải)
+  # ==========================================
+  acceptance-stage:
+    needs: commit-stage # BẮT BUỘC: Phải đợi giai đoạn 1 xanh thì mới chạy
+    runs-on: ubuntu-latest
+    steps:
+    - name: 1. Giả lập Performance Test (JMeter)
+      run: |
+        echo "⏳ Đang chạy kịch bản ép tải 10 triệu User (12/12)..."
+        echo "✅ Latency API Thanh toán: 150ms (< 200ms) -> PASSED"
+        sleep 2
+
+    - name: 2. Giả lập Chaos Engineering (Gremlin)
+      run: |
+        echo "🔥 Đang thử nghiệm tắt đột ngột Node Thanh Toán..."
+        echo "✅ Hệ thống Auto-scaling tự động phục hồi trong 3 giây -> PASSED"
+        sleep 2
+
+  # ==========================================
+  # GIAI ĐOẠN 3: RELEASE INTO PRODUCTION (Triển khai)
+  # ==========================================
+  release-stage:
+    needs: acceptance-stage # BẮT BUỘC: Phải đợi giai đoạn 2 xanh thì mới chạy
+    runs-on: ubuntu-latest
+    steps:
+    - name: 1. Push Docker Image
+      run: echo "📦 Đang đẩy bản build an toàn lên Docker Hub..."
+      
+    - name: 2. Deploy to Production (Kubernetes)
+      run: echo "🚀 Triển khai thành công tính năng Voucher lên môi trường thực tế V-Shop!"
